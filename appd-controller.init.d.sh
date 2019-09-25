@@ -98,7 +98,7 @@ check-home-page() {
 }
 
 get-pid() {
-	echo $(ps -ef | grep "$APPD_EUM_HOME" | grep "$APPD_PROCESS" | grep -v grep | awk '{print $2}')
+	echo $(ps -ef | grep "$APPD_CONTROLLER_HOME" | grep "$APPD_PROCESS" | grep -v grep | awk '{print $2}')
 }
 
 log-debug() {
