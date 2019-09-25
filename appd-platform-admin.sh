@@ -16,9 +16,6 @@ init() {
 	APPD_PROCESS="java"
 	APPD_NAME="Platform Admin"
 
-	#START_COMMAND="nohup sudo -H -u $APPD_RUNTIME_USER $JAVA $AGENT_OPTIONS -jar $AGENT_HOME/$APPD_PROCESS > /dev/null 2>&1 &"
-	#STOP_COMMAND="nohup sudo -H -u $APPD_RUNTIME_USER kill $(get-pid) > /dev/null 2>&1 &"
-
 	MSG_APP_RUNNING="AppDynamics - $APPD_NAME app server: Running"
 	MSG_APP_STOPPED="AppDynamics - $APPD_NAME app server: STOPPED"
 	MSG_DB_RUNNING="AppDynamics - $APPD_NAME database: Running"
@@ -118,10 +115,3 @@ case "$1" in
 		exit 1
 		;;
 esac
-
-
-################################################################################
-# COMMENT
-# Sometimes, we need to add _stopDB into start() method of "platform-admin.sh"
-# Otherwise the initial loading will fail for no reason ...
-################################################################################
