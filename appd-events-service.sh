@@ -3,9 +3,9 @@
 #description: service script for AppDynamics standalone events service
 set -e
 
-APPD_RUNTIME_USER="ubuntu"
-ES_HOME="/home/ubuntu/AppDynamics/events-service"
-export JAVA_HOME="/usr/local/java/jdk1.8.0_91"
+APPD_RUNTIME_USER="centos"
+ES_HOME="/home/centos/appdynamics/platform/product/events-service/processor"
+export JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk"
 
 DEBUG_LOGS=false
 
@@ -14,7 +14,7 @@ DEBUG_LOGS=false
 ################################################################################
 
 init() {
-	APPD_PROCESS="tool-executor.jar"
+	APPD_PROCESS="com.appdynamics.analytics.processor.AnalyticsService"
 	APPD_NAME="Events Service"
 
 	START_COMMAND="$ES_HOME/bin/events-service.sh start -p $ES_HOME/conf/events-service-api-store.properties"
@@ -79,11 +79,12 @@ status() {
 
 	log-debug "processPIDs=$processPIDs"
 
-	if [[ -z "$processPIDs" ]]; then
-		echo "$MSG_STOPPED"
-   	else
-		echo "$MSG_RUNNING"
-   	fi
+	STATUS=$(ps -ef | grep "$ES_HOME" | grep -i "$APPD_PROCESS" | grep -v grep)
+		if [[ -z "$STATUS" ]]; then
+			echo "$MSG_STOPPED"
+		else
+			echo "$MSG_RUNNING"
+		fi
 
 	check-ping
 }

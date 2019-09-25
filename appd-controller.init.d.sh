@@ -72,13 +72,6 @@ status () {
 		echo "$MSG_DB_RUNNING"
 	fi
 
-	STATUS=$(ps -ef | grep "$APPD_CONTROLLER_HOME" | grep -i events_service | grep -v grep)
-	if [[ -z "$STATUS" ]]; then
-		echo "$MSG_ES_STOPPED"
-	else
-		echo "$MSG_ES_RUNNING"
-	fi
-
 	check-home-page
 }
 
