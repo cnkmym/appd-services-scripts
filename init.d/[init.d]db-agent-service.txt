@@ -1,0 +1,94 @@
+###############################################
+File : /etc/init.d/appdynamics-db-agent
+
+#!/bin/bash
+
+# AppDynamics DB Agent
+# chkconfig: 2345 20 80
+# description: AppDynamics DB Agent
+# processname: db-agent.jar
+
+###############################################
+# Run Level Explanation
+# 0. Halt
+# 1. Single user mode - usually used to fix your system as root
+# 2. Multiuser, without NFS (The same as 3, if you do not have networking)
+# 3. Full multiuser mode also enables network adaptors
+# 4. Unused
+# 5. Enables X11 interface for graphical interaction rather than using just the command line
+# 6. Reboots - Can NOT be used
+###############################################
+
+DAEMON_PATH="/opt/appdynamics/db-agent"
+
+DAEMONOPTS=""
+DAEMON="su - appd -c /opt/appdynamics/db-agent/start-dbagent-with-opts"
+NAME="appdynamics-db-agent"
+DESC="AppDynamics DB Agent"
+PIDFILE=/opt/appdynamics/db-agent/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+
+case "$1" in
+start)
+        printf "%-50s" "Starting $NAME..."
+        # cd $DAEMON_PATH
+        PID=`$DAEMON $DAEMONOPTS > /dev/null 2>&1 & echo $!`
+        #echo "Saving PID" $PID " to " $PIDFILE
+        if [ -z $PID ]; then
+            printf "%s\n" "Fail"
+        else
+            echo $PID > $PIDFILE
+            printf "%s\n" "Ok"
+        fi
+;;
+status)
+        printf "%-50s" "Checking $NAME..."
+        if [ -f $PIDFILE ]; then
+            PID=`cat $PIDFILE`
+            if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+                printf "%s\n" "Process dead but pidfile exists"
+            else
+                echo "Running"
+            fi
+        else
+            printf "%s\n" "Service not running"
+        fi
+;;
+stop)
+        printf "%-50s" "Stopping $NAME"
+            PID=`cat $PIDFILE`
+            cd $DAEMON_PATH
+        if [ -f $PIDFILE ]; then
+            kill -HUP $PID
+            printf "%s\n" "Ok"
+            rm -f $PIDFILE
+        else
+            printf "%s\n" "pidfile not found"
+        fi
+;;
+restart)
+        $0 stop
+        $0 start
+;;
+*)
+        echo "Usage: $0 {status|start|stop|restart}"
+        exit 1
+esac
+
+
+
+
+###############################################
+File : /opt/appdynamics/db-agent/start-db-agent-with-opts
+
+#!/bin/bash
+/opt/appdynamics/db-agent/start-dbagent -Dlog4j.configuration=file:/opt/appdynamics/db-agent/conf/logging/log4j.xml
+
+###############################################
+Launch Command
+
+sudo chmod 755 appdynamics-db-agent
+sudo chkconfig appdynamics-db-agent --add
+# sudo chkconfig appdynamics-db-agent --del
+sudo service appdynamics-db-agent start
+sudo chkconfig --list

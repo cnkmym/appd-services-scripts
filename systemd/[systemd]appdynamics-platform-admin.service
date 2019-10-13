@@ -1,0 +1,26 @@
+Service File :
+File name : appdynamics-platform-admin
+Content:
+----------------------------
+[Unit]
+Description=The AppDynamics Enterprise Console
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=simple
+PIDFile=/opt/appdynamics/platform/platform-admin/platform-admin.pid
+ExecStart=/opt/appdynamics/platform/platform-admin/bin/platform-admin.sh start-platform-admin
+ExecStop=/opt/appdynamics/platform/platform-admin/bin/platform-admin.sh stop-platform-admin
+User=appd
+Group=appd
+
+[Install]
+WantedBy=multi-user.target
+----------------------------
+
+Then use the following command to enable the service:
+
+sudo cp /opt/appdynamics/platform/platform-admin/appdynamics-platform-admin.service /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl enable appdynamics-platform-admin
+sudo systemctl start appdynamics-platform-admin

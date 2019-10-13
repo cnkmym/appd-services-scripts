@@ -1,0 +1,70 @@
+Service File :
+File name : appdynamics-eum.service
+Content:
+----------------------------
+[Unit]
+Description=The AppDynamics EUM Server
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=simple
+
+ExecStart=/opt/appdynamics/eum/appdynamics-eum.sh start
+ExecStop=/opt/appdynamics/eum/appdynamics-eum.sh stop
+User=appd
+Group=appd
+
+[Install]
+WantedBy=multi-user.target
+----------------------------
+Wrapper File :
+File Name : appdynamics-eum.sh
+
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:     AppDynamicsEUM
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: AppDynamics EUM Service
+### END INIT INFO
+
+APPD_HOME=/opt/appdynamics/eum/eum-processor
+EUM_HOME=/opt/appdynamics/eum
+JAVA_HOME=/opt/appdynamics/eum/jre
+export JAVA_HOME=/opt/appdynamics/eum/jre
+
+set -e
+case "$1" in
+  start)
+    su - appd -c "export JAVA_HOME=/opt/appdynamics/eum/jre && cd /opt/appdynamics/eum/orcha/orcha-master/bin && nohup ./orcha-master -d mysql.groovy -p ../../playbooks/mysql-orcha/start-mysql.orcha -o ../conf/orcha.properties -c local"
+    sleep 10
+    su - appd -c "cd $APPD_HOME && nohup bin/eum.sh start &"
+    ;;
+  stop)
+    su - appd -c "cd $APPD_HOME && nohup bin/eum.sh stop"
+    sleep 5
+    su - appd -c "export JAVA_HOME=/opt/appdynamics/eum/jre && cd /opt/appdynamics/eum/orcha/orcha-master/bin && nohup ./orcha-master -d mysql.groovy -p ../../playbooks/mysql-orcha/stop-mysql.orcha -o ../conf/orcha.properties -c local"
+    ;;
+  restart)
+    su - appd -c "export JAVA_HOME=/opt/appdynamics/eum/jre && cd /opt/appdynamics/eum/orcha/orcha-master/bin && nohup ./orcha-master -d mysql.groovy -p ../../playbooks/mysql-orcha/stop-mysql.orcha -o ../conf/orcha.properties -c local"
+    sleep 5
+    su - appd -c "cd $APPD_HOME && nohup bin/eum.sh stop"
+    su - appd -c "export JAVA_HOME=/opt/appdynamics/eum/jre && cd /opt/appdynamics/eum/orcha/orcha-master/bin && nohup ./orcha-master -d mysql.groovy -p ../../playbooks/mysql-orcha/start-mysql.orcha -o ../conf/orcha.properties -c local"
+    sleep 10
+    su - appd -c "cd $APPD_HOME && nohup bin/eum.sh start &"
+    ;;
+  *)
+    echo "Usage: $0 start|stop|restart"
+    ;;
+esac
+
+exit 0
+----------------------------
+
+Then use the following command to enable the service:
+
+sudo systemctl cp /opt/appdynamics/eum/eum-processor/appdynamics-eum.service /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl enable appdynamics-eum
+sudo systemctl start appdynamics-eum

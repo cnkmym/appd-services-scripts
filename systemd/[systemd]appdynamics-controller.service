@@ -1,0 +1,26 @@
+Service File :
+File name : appdynamics-controller
+Content:
+----------------------------
+[Unit]
+Description=The AppDynamics Controller
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=simple
+
+ExecStart=/opt/appdynamics/platform/product/controller/bin/startController.sh
+ExecStop=/opt/appdynamics/platform/product/controller/bin/stopController.sh
+User=appd
+Group=appd
+
+[Install]
+WantedBy=multi-user.target
+----------------------------
+
+Then use the following command to enable the service:
+
+sudo cp /opt/appdynamics/platform/product/controller/appdynamics-controller.service /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl enable daemon-reload
+sudo systemctl start appdynamics-controller

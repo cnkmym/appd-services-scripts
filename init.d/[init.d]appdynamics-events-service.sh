@@ -1,15 +1,20 @@
 #!/bin/bash
 #chkconfig: 2345 60 90
 #description: service script for AppDynamics standalone events service
+
 set -e
 
-APPD_RUNTIME_USER="centos"
-ES_HOME="/home/centos/appdynamics/platform/product/events-service/processor"
-export JAVA_HOME="/usr/lib/jvm/java-1.8.0-openjdk"
+APPD_RUNTIME_USER="ravello"
+ES_HOME="/home/ravello/appdynamics/platform/product/events-service/processor"
+export JAVA_HOME="/home/ravello/appdynamics/platform/product/jre/1.8.0_162"
 
 DEBUG_LOGS=false
 
 ################################################################################
+# Put Runtime User to sudo group (wheels) to run "sudo rm (line 73, 78)" to clean pid files
+# or
+# Run the service script in root mode (thus no "sudo" needed in line 73,78)
+#
 # Do not edit below this line
 ################################################################################
 
@@ -17,8 +22,8 @@ init() {
 	APPD_PROCESS="com.appdynamics.analytics.processor.AnalyticsService"
 	APPD_NAME="Events Service"
 
-	START_COMMAND="$ES_HOME/bin/events-service.sh start -p $ES_HOME/conf/events-service-api-store.properties"
-	STOP_COMMAND="nohup sudo -H -u $APPD_RUNTIME_USER kill $(get-pid) > /dev/null 2>&1 &"
+	START_COMMAND="nohup sudo -H -E -u $APPD_RUNTIME_USER $ES_HOME/bin/events-service.sh start -p $ES_HOME/conf/events-service-api-store.properties > $ES_HOME/logs/startAs.log 2>&1 &"
+	STOP_COMMAND="nohup sudo -H -E -u $APPD_RUNTIME_USER kill $(get-pid) > /dev/null 2>&1 &"
 
 	MSG_RUNNING="AppDynamics - $APPD_NAME: Running"
 	MSG_STOPPED="AppDynamics - $APPD_NAME: STOPPED"
@@ -47,16 +52,31 @@ start() {
 		return
    	fi
 
-    echo -e "Starting the $APPD_NAME..."
+  clean-pid-file
+	log-debug "Ready to launch $APPD_NAME"
+  echo -e "Starting the $APPD_NAME..."
 	# DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 	# cd $ES_HOME
 
 	log-debug "$START_COMMAND"
+	# export JAVA_HOME=$JAVA_HOME
 	eval "$START_COMMAND"
 
 	# cd $DIR
 
 	echo -e "Started the $APPD_NAME..."
+}
+
+clean-pid-file() {
+	if [[ -e "$ES_HOME/elasticsearch.id" ]]; then
+		echo -e "clean $ES_HOME/elasticsearch.id file"
+		eval "rm $ES_HOME/elasticsearch.id"
+	fi
+
+	if [[ -e "$ES_HOME/events-service-api-store.id" ]]; then
+		echo -e "clean $ES_HOME/events-service-api-store.id file"
+		eval "rm $ES_HOME/events-service-api-store.id"
+	fi
 }
 
 stop() {
@@ -131,8 +151,11 @@ case "$1" in
 	status)
 		status
 		;;
+	clean)
+		clean-pid-file
+		;;
 	*)
-		echo -e "Usage:\n $0 [start|stop|restart|status]"
+		echo -e "Usage:\n $0 [start|stop|restart|status|clean]"
 		exit 1
 		;;
 esac

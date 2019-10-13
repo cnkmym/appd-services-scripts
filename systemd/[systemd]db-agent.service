@@ -1,0 +1,27 @@
+Service File :
+File name : appdynamics-db-agent.service
+Content:
+----------------------------
+[Unit]
+Description=The AppDynamics DB Agent
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=simple
+
+PIDFile=/opt/appdynamics/db-agent/db-agent.pid
+ExecStart=/opt/appdynamics/db-agent/start-dbagent -Dlog4j.configuration=file:/opt/appdynamics/db-agent/conf/logging/log4j.xml
+ExecStop=/bin/kill -s QUIT $MAINPID
+User=appd
+Group=appd
+
+[Install]
+WantedBy=multi-user.target
+----------------------------
+
+Then use the following command to enable the service:
+
+sudo cp /opt/appdynamics/db-agent/appdynamics-db-agent.service /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl enable appdynamics-db-agent.service
+sudo systemctl start appdynamics-db-agent
